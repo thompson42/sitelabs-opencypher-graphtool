@@ -1,0 +1,13 @@
+# conda env create -f environment.yml && conda activate opencypher-graphtool
+# graph-tool comes from conda-forge (it is not on PyPI); the package itself is installed editable.
+name: opencypher-graphtool
+channels:
+  - conda-forge
+dependencies:
+  - python=3.14
+  - graph-tool=3.9
+  - numpy
+  - python-dateutil=3.0       # matplotlib's (graph-tool drawing); 4.0 is held back until it has settled
+  - pip
+  - pip:
+      - -e .[cassandra,test]

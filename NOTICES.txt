@@ -1,0 +1,55 @@
+THIRD-PARTY NAMES, TRADEMARKS AND LICENCES
+==========================================
+
+This repository refers to the third-party specifications, software, products, platforms and
+data listed below. Their names are used only to identify them. All rights in them lie with
+their respective copyright and trademark owners, named under each entry.
+
+
+THIRD-PARTY SOFTWARE THE ENGINE USES OR NAMES
+---------------------------------------------
+
+openCypher
+openCypher is available under the Apache License 2.0.
+
+Apache Cassandra
+All rights lie with the respective copyright and trademark owner: The Apache Software Foundation.
+
+cassandra-driver (the Python driver for Apache Cassandra)
+All rights lie with the respective copyright and trademark owners: DataStax, Inc. and The Apache Software Foundation.
+
+graph-tool
+All rights lie with the respective copyright and trademark owner: Tiago de Paula Peixoto.
+
+Boost C++ Libraries
+All rights lie with the respective copyright and trademark owners: the Boost authors.
+
+CGAL (Computational Geometry Algorithms Library)
+All rights lie with the respective copyright and trademark owner: GeometryFactory and the CGAL project.
+
+cairo
+All rights lie with the respective copyright and trademark owners: the cairo graphics project.
+
+OpenMP
+All rights lie with the respective copyright and trademark owner: OpenMP Architecture Review Board.
+
+NumPy
+All rights lie with the respective copyright and trademark owner: NumPy Developers.
+
+Python
+All rights lie with the respective copyright and trademark owner: Python Software Foundation.
+
+conda
+All rights lie with the respective copyright and trademark owner: Anaconda, Inc.
+
+conda-forge and Miniforge (including the condaforge/miniforge3 image)
+All rights lie with the respective copyright and trademark owner: the conda-forge community.
+
+Pydantic
+All rights lie with the respective copyright and trademark owner: Pydantic Services Inc.
+
+annotated-types (used by the Vector[n] field type)
+All rights lie with the respective copyright and trademark owners: the annotated-types authors.
+
+pytest
+All rights lie with the respective copyright and trademark owners: Holger Krekel and the pytest-dev team.

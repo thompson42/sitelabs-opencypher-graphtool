@@ -1,0 +1,39 @@
+# The engine's tests against a real Cassandra, on every push and pull request.
+# REQUIRE_CASSANDRA=1: an unreachable Cassandra fails the run instead of skipping its tests.
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    services:
+      cassandra:
+        image: cassandra:5.0.9@sha256:ae4cc2e4b62a5b2a2dd1645ba827cb50c589cc7531bcffe8b8b60ac3b1adc79d
+        ports: ["127.0.0.1:9042:9042"]
+        env:
+          MAX_HEAP_SIZE: 1G
+          HEAP_NEWSIZE: 200M
+        options: >-
+          --health-cmd "cqlsh -e 'DESCRIBE KEYSPACES'"
+          --health-interval 10s --health-timeout 10s --health-retries 30
+    defaults:
+      run:
+        shell: bash -el {0}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: conda-incubator/setup-miniconda@v3
+        with:
+          miniforge-version: latest
+          environment-file: environment.yml
+          activate-environment: opencypher-graphtool
+      - name: Run the tests
+        env:
+          REQUIRE_CASSANDRA: "1"
+        run: python -m pytest -ra

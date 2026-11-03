@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "opencypher-graphtool"
+version = "0.1.0"
+description = "An openCypher query engine for graph-tool, with pluggable property stores (in memory, Apache Cassandra)"
+readme = "README.md"
+license = "Apache-2.0"
+license-files = ["LICENSE.txt", "NOTICES.txt"]
+authors = [{ name = "S. Alex Thompson" }]
+requires-python = ">=3.12"
+# graph-tool is not on PyPI: install it from conda-forge (environment.yml) before this package.
+dependencies = [
+    "pydantic>=2.14",       # the data model (Models, VertexModel, EdgeModel, Field)
+]
+
+[project.optional-dependencies]
+cassandra = ["cassandra-driver>=3.30"]   # CassandraStore
+test = ["pytest>=9.1"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
