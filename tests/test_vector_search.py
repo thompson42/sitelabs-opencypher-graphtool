@@ -263,3 +263,22 @@ def test_vector_writes_back_off_to_what_the_server_accepts():
 
     with pytest.raises(Refused, match="something else"):
         Broken()._write_all("stmt", [1], vector=True)    # other errors aren't retried
+
+
+def test_concurrent_writes_report_each_failure_instead_of_raising(monkeypatch):
+    """The driver raises at the first failure unless told otherwise; the store's callers (the
+    vector write back-off among them) need each statement's result."""
+    pytest.importorskip("cassandra")
+    import cassandra.concurrent
+    from opencypher_graphtool import CassandraStore
+    seen = {}
+
+    def fake(session, stmt, params, **kw):
+        seen.update(kw)
+        return [(True, None) for _ in params]
+
+    monkeypatch.setattr(cassandra.concurrent, "execute_concurrent_with_args", fake)
+    store = CassandraStore.__new__(CassandraStore)
+    store.session, store.concurrency = None, 100
+    store._concurrent("stmt", [(1,), (2,)], 4)
+    assert seen == {"concurrency": 4, "raise_on_first_error": False}

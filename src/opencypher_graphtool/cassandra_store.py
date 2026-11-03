@@ -110,9 +110,13 @@ class CassandraStore(PropertyStore):
         return self._stmts[cql]
 
     def _concurrent(self, stmt, params, concurrency: int | None = None):
+        """[(ok, result or exception)] per statement: every caller looks at each one (the driver's
+        default, raise_on_first_error=True, would raise at the first failure instead, and the
+        vector write retries in _write_all would never run)."""
         from cassandra.concurrent import execute_concurrent_with_args
         return execute_concurrent_with_args(self.session, stmt, params,
-                                            concurrency=concurrency or self.concurrency)
+                                            concurrency=concurrency or self.concurrency,
+                                            raise_on_first_error=False)
 
     @staticmethod
     def _has_vector_index(meta) -> bool:

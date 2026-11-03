@@ -637,12 +637,14 @@ def _install_fake_cassandra():
     for name in ("cassandra", "cassandra.concurrent"):
         _REAL_CASSANDRA.setdefault(name, sys.modules.get(name))
     mod = types.ModuleType("cassandra.concurrent")
-    def execute_concurrent_with_args(session, stmt, params, concurrency=100):
-        out = []
+    def execute_concurrent_with_args(session, stmt, params, concurrency=100, raise_on_first_error=True):
+        out = []                                   # like the driver: raise at the first failure unless told not to
         for p in params:
             try:
                 out.append((True, session.run(stmt, p)))
             except Exception as ex:
+                if raise_on_first_error:
+                    raise
                 out.append((False, ex))
         return out
     mod.execute_concurrent_with_args = execute_concurrent_with_args

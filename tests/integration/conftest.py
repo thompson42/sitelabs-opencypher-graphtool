@@ -12,8 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Fixtures for the tests against a real Cassandra (127.0.0.1:9042, e.g. a docker-cassandra
-container): a session, and a throwaway keyspace per test."""
+"""Fixtures for the tests against a real Cassandra (127.0.0.1:9042, or the port in CASSANDRA_PORT;
+e.g. a docker-cassandra container): a session, and a throwaway keyspace per test."""
+import os
 import uuid
 
 import pytest
@@ -27,7 +28,7 @@ from cassandra.cluster import Cluster, NoHostAvailable  # noqa: E402
 @pytest.fixture(scope="module")
 def session():
     try:
-        cluster = Cluster(["127.0.0.1"], port=9042, connect_timeout=3)
+        cluster = Cluster(["127.0.0.1"], port=int(os.environ.get("CASSANDRA_PORT", "9042")), connect_timeout=3)
         sess = cluster.connect()
     except NoHostAvailable:
         cassandra_missing()
