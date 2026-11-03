@@ -37,3 +37,6 @@ jobs:
         env:
           REQUIRE_CASSANDRA: "1"
         run: python -m pytest -ra
+      - name: Cassandra's log (when the tests failed)
+        if: failure()
+        run: docker logs "${{ job.services.cassandra.id }}" 2>&1 | grep -E "ERROR|WARN|Exception|Caused by" | tail -60
