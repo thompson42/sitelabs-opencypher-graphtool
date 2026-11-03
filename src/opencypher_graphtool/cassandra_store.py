@@ -121,25 +121,34 @@ class CassandraStore(PropertyStore):
 
     def _write_all(self, stmt, params, vector: bool) -> None:
         """Run idempotent writes; on a table with a vector index, cap the concurrency and retry
-        the writes the index refused because too many were in flight."""
+        the writes the index refused because too many were in flight, halving the concurrency
+        each time down to one write at a time (which the index always accepts): the index's
+        limit follows the server's CPU count, which the client doesn't know."""
         if not vector:
             for ok, res in self._concurrent(stmt, params):
                 if not ok:
                     raise res
             return
         pending = list(params)
-        for attempt in range(4):
-            results = self._concurrent(stmt, pending, min(self.concurrency, self.vector_write_concurrency))
+        conc = min(self.concurrency, self.vector_write_concurrency)
+        attempt = 0
+        while True:
+            results = self._concurrent(stmt, pending, conc)
             failed = [(p, res) for p, (ok, res) in zip(pending, results) if not ok]
             if not failed:
+                if attempt:
+                    log.info("vector writes went through at %s in flight (vector_write_concurrency is %s: "
+                             "lower it for this Cassandra)", conc, self.vector_write_concurrency)
                 return
-            if attempt == 3 or not all("outstanding pooled objects" in str(r) or "Replica(s) failed" in str(r)
-                                       for _, r in failed):
+            refused = all("outstanding pooled objects" in str(r) or "Replica(s) failed" in str(r) for _, r in failed)
+            if not refused or (conc == 1 and attempt >= 3):
                 log.warning("%s write(s) to a vector-indexed table failed: %s", len(failed), failed[0][1])
                 raise failed[0][1]
-            log.debug("vector index refused %s of %s write(s): retry %s", len(failed), len(pending), attempt + 1)
+            log.debug("vector index refused %s of %s write(s) at %s in flight: retrying", len(failed), len(pending), conc)
             pending = [p for p, _ in failed]
-            time.sleep(0.05 * 2 ** attempt)
+            conc = max(1, conc // 2)
+            time.sleep(0.05 * 2 ** min(attempt, 4))
+            attempt += 1
 
     def _is_searchable(self, table: str, meta, key: str) -> bool:
         if self.searchable is not None:

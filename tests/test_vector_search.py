@@ -229,3 +229,37 @@ def test_vector_search_errors():
     ]:
         with pytest.raises(OpenCypherError, match=msg):
             cy.run(q).data()
+
+
+def test_vector_writes_back_off_to_what_the_server_accepts():
+    """Cassandra 5.0 refuses more simultaneous writes to a vector index than its CPU count allows
+    ("outstanding pooled objects"); the store halves its concurrency until they go through."""
+    from opencypher_graphtool import CassandraStore
+
+    class Refused(Exception):
+        pass
+
+    class Limited(CassandraStore):
+        limit = 3                                   # a 4-core server's pool
+        seen: list = []
+
+        def __init__(self):                         # no session needed for this test
+            self.concurrency, self.vector_write_concurrency = 100, 8
+
+        def _concurrent(self, stmt, params, concurrency=None):
+            self.seen.append(concurrency)
+            over = (concurrency or 100) > self.limit
+            return [(False, Refused("Number of outstanding pooled objects has gone beyond the limit of 3"))
+                    if over and i >= self.limit else (True, None) for i, _ in enumerate(params)]
+
+    s = Limited()
+    s._write_all("stmt", list(range(20)), vector=True)
+    assert s.seen == [8, 4, 2]                      # 8 refused some, 4 refused some, 2 went through
+    s.seen.clear()
+
+    class Broken(Limited):
+        def _concurrent(self, stmt, params, concurrency=None):
+            return [(False, Refused("something else")) for _ in params]
+
+    with pytest.raises(Refused, match="something else"):
+        Broken()._write_all("stmt", [1], vector=True)    # other errors aren't retried
