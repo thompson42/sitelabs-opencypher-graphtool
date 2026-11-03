@@ -20,6 +20,9 @@ jobs:
         env:
           MAX_HEAP_SIZE: 1G
           HEAP_NEWSIZE: 200M
+          # Cassandra 5.0 sizes its vector index pools by processor count: on the runner's 4 cores a
+          # table with three vector indexes (the tests' VDoc) is refused even single writes
+          JVM_EXTRA_OPTS: -XX:ActiveProcessorCount=8
         options: >-
           --health-cmd "cqlsh -e 'DESCRIBE KEYSPACES'"
           --health-interval 10s --health-timeout 10s --health-retries 30
