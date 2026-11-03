@@ -106,7 +106,9 @@ REQUIRE_CASSANDRA=1 python -m pytest          # fail instead of skipping without
 ```
 
 The Cassandra tests (`tests/integration/`) need Cassandra on `127.0.0.1:9042`, e.g.
-`docker run -d -p 127.0.0.1:9042:9042 cassandra:5.0.9`.
+`docker run -d -p 127.0.0.1:9042:9042 cassandra:5.0.9`. On a machine with 4 CPU cores or fewer,
+start it with `-e JVM_EXTRA_OPTS=-XX:ActiveProcessorCount=8`: Cassandra 5.0 sizes its vector index
+pools by processor count, and the vector tests' table has three vector indexes (CI does this too).
 
 ## Versions
 
