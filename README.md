@@ -93,10 +93,13 @@ loads first.
 
 * **Property stores:** subclass `PropertyStore` (see `InMemoryStore` and `CassandraStore`): the
   columns of a type, fetching rows by id, writing them, and optional index search.
-* **Pattern expansion:** `matching` expands one hop of a pattern on the local graph-tool graph. The
-  partitioned graph needs this step to become an exchange with the partitions that own the
-  vertices; making it a documented hook is the next change here (planned with
-  sitelabs-partitioned-graph).
+* **The runner and pattern expansion:** `OpenCypher.runner` is the class that runs a query (the
+  `_Run` of `clauses`). A subclass can override its matching steps: `seed` (a pattern's start
+  vertices), `filter_nodes`, `choose_start`, and `neighbourhood(vertices, direction, types, labels)`,
+  which the matcher calls before it reads incident edges (once per hop with the whole frontier, once
+  per level of a variable-length pattern, once per BFS layer of shortestPath(), and in degree()). It
+  does nothing on a local graph; sitelabs-partitioned-graph uses it to fetch each hop from the
+  partitions that own the vertices.
 
 ## Tests
 

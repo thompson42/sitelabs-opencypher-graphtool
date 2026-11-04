@@ -278,6 +278,14 @@ class _Run(_RunBase):                                 # the runner, continued: m
     def other_end(self, v, e):
         return e.target() if e.source() == v else e.source()
 
+    def neighbourhood(self, vertices: list, direction: str, types: tuple = (), labels: tuple = ()) -> None:
+        """The hook before the matcher reads incident edges: it is about to read the `direction`
+        ("out" | "in" | "all") edges of `vertices`, keeping those of one of `types` (none: any) whose
+        other end has every one of `labels`. On a local graph there is nothing to do. A runner whose
+        graph is a cache of a graph held elsewhere adds those edges and their far ends to it here,
+        in one batch, so that what follows reads them locally. It may leave out edges outside the
+        filters: the matcher still applies them."""
+
     def rel_type_ok(self, e, rel: PRel) -> bool:
         return (not rel.types) or self.sc.has_type(self.g, e, rel.types, "any")
 
@@ -291,6 +299,8 @@ class _Run(_RunBase):                                 # the runner, continued: m
         g = self.g
         if rel.varlen:
             return self.expand_varlen(rows, part, names, rnames, ri, a, b, fwd, direction, h)
+        self.neighbourhood([r[names[a]] for r in rows if isinstance(r[names[a]], Vertex)], d, rel.types,
+                           tuple(sorted(set(to_node.labels) | (h["labels"] if h else set()))))
         trips = []                                         # (row, edge, other)
         for r in rows:
             self.tick()
@@ -354,21 +364,20 @@ class _Run(_RunBase):                                 # the runner, continued: m
         d = {"out": "out", "in": "in", "both": "all"}[direction]
         to_node, to_name = part.nodes[b], names[b]
         cap = rel.hi if rel.hi is not None else self.eng.varlen_cap
-        out = []
+        # level-synchronous trail enumeration, every row's level at once (one neighbourhood() per
+        # level): per row [row, edges used before, level, results]; state = (vertex, edges, vertices-between)
+        states = []
         for r in rows:
             v0 = r[names[a]]
             if not isinstance(v0, Vertex):
                 continue
-            used0 = set(r[_HID + "E"])
-            tgt = r.get(to_name)
-            # level-synchronous trail enumeration: state = (vertex, edges, vertices-between)
-            level = [(v0, (), ())]
-            results = []
-            if rel.lo == 0:
-                results.append((v0, (), ()))
-            depth = 0
-            while level and depth < cap:
-                depth += 1
+            states.append([r, set(r[_HID + "E"]), [(v0, (), ())], [(v0, (), ())] if rel.lo == 0 else []])
+        depth = 0
+        while depth < cap and any(st[2] for st in states):
+            depth += 1
+            self.neighbourhood([v for st in states for v, _, _ in st[2]], d, rel.types)
+            for st in states:
+                r, used0, level, results = st
                 nxt = []
                 cand = []
                 for v, es, vs in level:
@@ -389,7 +398,10 @@ class _Run(_RunBase):                                 # the runner, continued: m
                     nxt.append((o, nes, nvs))
                     if depth >= rel.lo:
                         results.append((o, nes, nvs))
-                level = nxt
+                st[2] = nxt
+        out = []
+        for r, _, _, results in states:
+            tgt = r.get(to_name)
             if tgt is not None and to_name in r:
                 results = [x for x in results if int(x[0]) == int(tgt)]
             ends = {int(o): o for o, _, _ in results}
@@ -459,6 +471,7 @@ class _Run(_RunBase):                                 # the runner, continued: m
         while frontier and depth < cap and not found:
             depth += 1
             nxt = {}
+            self.neighbourhood(frontier, d, rel.types)
             for v in frontier:
                 self.tick()
                 for e in _incident(g, v, d):

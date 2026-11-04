@@ -68,8 +68,9 @@ def _gf_end(r, e): return None if e is None else e.target()
 def _gf_exists(r, x): return x is not None
 def _gf_degree(r, v, direction=None):
     if v is None: return None
-    d = (direction or "both").lower()
-    return len(_incident(r.g, v, {"out": "out", "in": "in"}.get(d, "all")))
+    d = {"out": "out", "in": "in"}.get((direction or "both").lower(), "all")
+    r.neighbourhood([v], d)
+    return len(_incident(r.g, v, d))
 def _gf_elementid(r, x): return _gf_id(r, x)
 
 

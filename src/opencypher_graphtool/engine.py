@@ -99,7 +99,13 @@ class OpenCypher:
 
         cy = opencypher(graph, store, schema)
         cy.run("MATCH (p:Person {name: $n})-[:KNOWS]->(f) RETURN f.name AS friend", n="Ann").data()
+
+    `runner` is the class that runs one query. A subclass can override its matching steps (`seed`,
+    `filter_nodes`, `choose_start`, `neighbourhood`) when the graph is a cache of a graph held
+    elsewhere (sitelabs-partitioned-graph): see _Run.neighbourhood.
     """
+    runner = _Run
+
     def __init__(self, graph: Graph, store: "PropertyStore | None" = None,
                  schema: Schema | None = None, varlen_cap: int = 64, lock: bool = True,
                  atomic: bool = True, stable_merge_ids: bool = True, id_index: str | None = None,
@@ -263,7 +269,7 @@ class OpenCypher:
             lk.release(hold)
 
     def _run_query(self, q: "Query", p: dict) -> Result:
-        runner = _Run(self, p)
+        runner = self.runner(self, p)
         g, store = self.graph, self.store
         if store is not None and not store.cache_across_queries:
             store.clear_cache()
@@ -719,7 +725,7 @@ class OpenCypher:
     def explain(self, query: str, params: dict | None = None) -> list[str]:
         """How the query will be executed: start nodes, how seeds are found, pushdown."""
         q = parse(query)
-        run = _Run(self, params or {})
+        run = self.runner(self, params or {})
         lines: list[str] = []
         for si, single in enumerate(q.parts):
             if si:
