@@ -62,7 +62,15 @@ With Cassandra: `CassandraStore(session, "keyspace")` instead of `InMemoryStore(
 
 **The language, by example:** [`docs/query-catalogue.md`](docs/query-catalogue.md) has a query for
 each part of openCypher the engine supports, written against sitelabs-graph-database's sample graphs,
-to paste into the query console (sitelabs-graph-ui).
+to paste into the query console (sitelabs-graph-ui). sitelabs-graph-database-conda and
+sitelabs-partitioned-graph keep a copy in their docs, as it is at the tag they pin; their tests fail
+if it is edited there or left behind when the pin moves. Change it here, release a tag, move a
+project's pin, then refresh its copy:
+
+```bash
+python scripts/install_catalogue.py ../sitelabs-graph-database-conda           # writes its docs/query-catalogue.md
+python scripts/install_catalogue.py --check ../sitelabs-partitioned-graph      # is its copy current?
+```
 
 ## The modules
 

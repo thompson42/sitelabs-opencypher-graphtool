@@ -27,12 +27,12 @@ class Recording(_Run):
         Recording.calls.append((len(vertices), direction, tuple(types), tuple(labels)))
 
 
-class RecordingCypher(OpenCypher):
+class RecordingOpenCypher(OpenCypher):
     runner = Recording
 
 
 def make():
-    cy = RecordingCypher(Graph())
+    cy = RecordingOpenCypher(Graph())
     cy.run("CREATE (a:P {n: 1})-[:R]->(b:P {n: 2})-[:R]->(c:Q {n: 3}), (a)-[:R]->(c)")
     Recording.calls.clear()
     return cy
