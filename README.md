@@ -60,6 +60,10 @@ print(cy.run("MATCH (a:Person)-[k:KNOWS]->(b) RETURN a.name AS a, b.name AS b, k
 With Cassandra: `CassandraStore(session, "keyspace")` instead of `InMemoryStore({})`. More in
 [`examples/`](examples).
 
+**The language, by example:** [`docs/query-catalogue.md`](docs/query-catalogue.md) has a query for
+each part of openCypher the engine supports, written against sitelabs-graph-database's sample graphs,
+to paste into the query console (sitelabs-graph-ui).
+
 ## The modules
 
 The engine was one 6,400-line module (`opencypher_gt`); it is now a package of modules, in the

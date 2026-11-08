@@ -734,6 +734,24 @@ def test_procedures():
     assert r.single() == {"names": ["Ann", "Bob", "Dan"], "totalCost": 2.0}
     r = e.cy.run("MATCH (a:Person {name:'Dan'}), (b:Person {name:'Ann'}) CALL gt.shortestPath(a, b) YIELD path RETURN path")
     assert r.rows == []
+    # the path's relationships are the graph's own, whatever view the search ran on: filtered by
+    # type, reversed (IN), or undirected (BOTH, walking Dan<-Bob<-Ann against the arrows)
+    forward = [["Ann", "KNOWS", "Bob"], ["Bob", "KNOWS", "Dan"]]
+    backward = [["Bob", "KNOWS", "Dan"], ["Ann", "KNOWS", "Bob"]]
+    for cfg, ends, names, rels in [
+            ("{relationshipTypes: ['KNOWS']}", ("Ann", "Dan"), ["Ann", "Bob", "Dan"], forward),
+            ("{direction: 'BOTH'}", ("Dan", "Ann"), ["Dan", "Bob", "Ann"], backward),
+            ("{direction: 'BOTH', relationshipTypes: ['KNOWS']}", ("Dan", "Ann"), ["Dan", "Bob", "Ann"], backward),
+            ("{direction: 'IN'}", ("Dan", "Ann"), ["Dan", "Bob", "Ann"], backward)]:
+        r = e.cy.run(f"MATCH (a:Person {{name:'{ends[0]}'}}), (b:Person {{name:'{ends[1]}'}}) "
+                     f"CALL gt.shortestPath(a, b, {cfg}) YIELD path "
+                     "RETURN path, [n IN nodes(path) | n.name] AS names, "
+                     "[r IN relationships(path) | [startNode(r).name, type(r), endNode(r).name]] AS rels")
+        row = r.single()
+        assert row["names"] == names, cfg
+        assert row["rels"] == rels, cfg
+        p = row["path"]
+        assert [x.properties["name"] for x in p.nodes] == names and [x.type for x in p.relationships] == ["KNOWS"] * 2, cfg
     raises(OpenCypherError, lambda: e.cy.run("CALL no.such.proc()"), "no procedure")
 
 

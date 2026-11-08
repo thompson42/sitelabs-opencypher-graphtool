@@ -179,8 +179,22 @@ def _proc_shortest(run, source, target, config=None):
     if len(vl) == 0:
         return ["path", "totalCost"], []
     cost = float(sum(w[e] for e in el)) if w is not None else float(len(el))
-    return ["path", "totalCost"], [{"path": CPath(tuple(g.vertex(int(v)) for v in vl), tuple(el)),
+    return ["path", "totalCost"], [{"path": CPath(tuple(g.vertex(int(v)) for v in vl),
+                                                  tuple(_base_edge(g, view, e) for e in el)),
                                     "totalCost": cost}]
+
+
+def _base_edge(g: Graph, view, e):
+    """The edge of `g` that the GraphView's edge `e` stands for. A view's edge descriptors are only
+    valid inside the view, and an undirected or reversed view may report the ends swapped, so the
+    edge is found again in `g` by its index, among the edges between its two ends."""
+    idx = int(view.edge_index[e])
+    s, t = int(e.source()), int(e.target())
+    for a, b in ((s, t), (t, s)):
+        for ge in g.edge(a, b, all_edges=True):
+            if int(g.edge_index[ge]) == idx:
+                return ge
+    raise OpenCypherError(f"gt.shortestPath: edge {idx} of the path is not in the graph")
 
 
 VECTOR_SEARCH_MAX_K = 1000   # Cassandra's limit for ORDER BY ... ANN OF
