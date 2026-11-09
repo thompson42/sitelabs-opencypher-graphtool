@@ -4,8 +4,9 @@
 > find:** one or more queries for each part of the language the engine supports, ready to copy into
 > the console's query box, and what each one shows.
 
-Every query below runs as written against the two sample graphs that sitelabs-graph-database ships
-(two return no rows on purpose, and say so). Load the samples once, from the database's directory:
+Every query below runs as written against two sample graphs, a karate club and a citation graph (two
+return no rows on purpose, and say so). Where the project serving the console ships them, load them
+once, from its directory:
 
 ```bash
 python -m example_solutions.example_graphs.karate_club   # 34 :Member nodes, 78 :FRIENDS_WITH relationships
@@ -25,8 +26,8 @@ the console's parameters box.
 [Writes](#writes) are for `POST /opencypher`; in the console, press **Explain** on them to see their
 plan without running them.
 
-What the engine does *not* support is listed in sitelabs-graph-database's
-`docs/opencypher-unsupported-features.md`.
+What the engine does *not* support is listed in the documentation of the project serving the
+console.
 
 * [Catalogue procedures](#catalogue-procedures)
 * [Literals](#literals)

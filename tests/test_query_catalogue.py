@@ -59,6 +59,11 @@ def test_every_parameter_block_is_json_after_a_query():
             assert isinstance(json.loads(body), dict)
 
 
+def test_it_names_no_project_that_copies_it():
+    """Each project keeps a word-for-word copy, so the catalogue mustn't name any of them."""
+    assert not re.search(r"(?i)sitelabs-(graph-database|partitioned-graph)", TEXT)
+
+
 def test_the_language_has_one_name():
     """The copies in sitelabs-partitioned-graph and sitelabs-graph-database-conda are checked for it."""
     word = "cy" + "pher"
