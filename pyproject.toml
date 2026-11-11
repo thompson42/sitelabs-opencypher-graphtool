@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "opencypher-graphtool"
-version = "0.1.6"
+version = "0.1.7"
 description = "An openCypher query engine for graph-tool, with pluggable property stores (in memory, Apache Cassandra)"
 readme = "README.md"
 license = "Apache-2.0"

@@ -1,6 +1,6 @@
 # openCypher query catalogue
 
-> **For:** anyone trying the engine's openCypher in the query console (sitelabs-graph-ui). **You'll
+> **For:** anyone trying the engine's openCypher in the UI query console (sitelabs-graph-ui). **You'll
 > find:** one or more queries for each part of the language the engine supports, ready to copy into
 > the console's query box, and what each one shows.
 
