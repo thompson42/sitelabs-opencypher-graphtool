@@ -26,7 +26,7 @@ In another project, with graph-tool in its environment:
 
 ```bash
 pip install -e ../sitelabs-opencypher-graphtool[cassandra]        # while developing both side by side
-pip install "opencypher-graphtool[cassandra] @ git+https://github.com/thompson42/sitelabs-opencypher-graphtool.git@v0.1.0"
+pip install "opencypher-graphtool[cassandra] @ git+https://github.com/sitelabs-com/sitelabs-opencypher-graphtool.git@v0.1.0"
 ```
 
 The `cassandra` extra adds the Cassandra driver (for `CassandraStore`); without it the engine runs
